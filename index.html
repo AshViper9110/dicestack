@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="DICE STACK — 2人対戦の戦略ボードゲーム">
+  <title>DICE STACK — Strategy Board Game</title>
+  <link rel="stylesheet" href="./style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"
+          onerror="window.__peerScriptFailed=true"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="DICE STACK ホーム">
+        <span class="brand-mark">D<span>+</span></span>
+        <span><strong>DICE STACK</strong><small>TACTICAL DICE DUEL</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="connection-pill"><i id="connectionDot"></i><span id="connectionText">オフライン</span></span>
+        <button class="icon-button" id="rulesOpen" aria-label="ルールを開く" title="ルール">?</button>
+      </div>
+    </header>
+
+    <section id="menuScreen" class="screen menu-screen">
+      <div class="hero">
+        <div class="eyebrow"><span class="eyebrow-line"></span> TWO PLAYERS · ONE BOARD</div>
+        <h1>Think ahead.<br><em>Stack to win.</em></h1>
+        <p class="hero-copy">数字を育て、相手の一手を読み、最短ルートで突破する。<br>小さな盤面に、無限の駆け引き。</p>
+        <div class="hero-board" aria-hidden="true">
+          <div class="mini-grid">
+            <span></span><span class="mini-die dark">1</span><span class="mini-die dark">1</span><span class="mini-die dark">1</span><span></span>
+            <span></span><span></span><span class="mini-glow"></span><span></span><span></span>
+            <span></span><span class="mini-glow"></span><span></span><span class="mini-glow"></span><span></span>
+            <span></span><span></span><span class="mini-glow"></span><span></span><span></span>
+            <span></span><span class="mini-die light">1</span><span class="mini-die light">1</span><span class="mini-die light">1</span><span></span>
+          </div>
+          <div class="board-caption"><span>5 × 7 GRID</span><span>3 DICE EACH</span><span>NO LUCK. JUST LOGIC.</span></div>
+        </div>
+      </div>
+
+      <div class="lobby-card">
+        <div class="lobby-heading"><div><span class="section-kicker">ONLINE MATCH</span><h2>対戦をはじめる</h2></div><span class="live-mark"><i></i> PEER TO PEER</span></div>
+        <button class="primary-button" id="createRoom"><span class="button-icon">＋</span><span><strong>部屋を作る</strong><small>ホストとして白で先手</small></span><b>→</b></button>
+        <div id="hostPanel" class="host-panel hidden">
+          <label for="myPeerId">4桁のルームID</label>
+          <div class="copy-row"><input id="myPeerId" readonly aria-label="4桁のルームID"><button id="copyId" class="secondary-button">ルームIDをコピー</button></div>
+          <p class="subtle" id="waitingText">相手が4桁のルームIDを入力するまで待機中です。</p>
+          <div class="waiting-indicator"><span></span><span></span><span></span></div>
+        </div>
+        <div class="lobby-divider"><span>OR JOIN A FRIEND</span></div>
+        <form id="joinForm" class="join-form">
+          <label for="peerIdInput">相手のルームID（4桁）</label>
+          <div class="join-row"><input id="peerIdInput" autocomplete="off" spellcheck="false" placeholder="例：0427"><button class="secondary-button" type="submit" id="joinRoom">部屋に参加 <span>→</span></button></div>
+        </form>
+        <p id="lobbyStatus" class="status-message" role="status">オンライン対戦にはインターネット接続が必要です。</p>
+        <p class="fine-print">ゲームの状態はホストが管理します。通信にはPeerJS / WebRTCを使用します。</p>
+      </div>
+      <footer class="page-footer"><span>© DICE STACK</span><span>MADE FOR STRATEGIC MINDS</span></footer>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen hidden">
+      <div class="game-heading">
+        <div><span class="section-kicker">LIVE MATCH</span><h1>Make your move.</h1></div>
+        <button class="text-button" id="backToMenu">← メニューへ戻る</button>
+      </div>
+      <div class="match-layout"><div class="player-position-note"><span>▲ 相手（上側）</span><span>▼ 自分（下側）</span></div>
+        <aside class="match-sidebar">
+          <div class="turn-card" id="turnCard">
+            <div class="turn-topline"><span id="roundLabel">TURN 01</span><span class="turn-pulse"></span></div>
+            <div class="turn-player"><span id="turnPiece" class="player-token white-token">W</span><div><small>現在の手番</small><strong id="turnLabel">白のターン</strong></div></div>
+            <p id="turnHint">操作するダイスを選択してください。</p>
+          </div>
+          <div class="player-card opponent-player" id="whitePlayerCard"><div class="player-symbol white-token">W</div><div class="player-info"><strong>WHITE / 白</strong><small id="whiteRole">ホスト</small></div><span class="player-state" id="whiteState">先手</span></div>
+          <div class="player-card self-player" id="blackPlayerCard"><div class="player-symbol black-token">B</div><div class="player-info"><strong>BLACK / 黒</strong><small id="blackRole">ゲスト</small></div><span class="player-state" id="blackState">後手</span></div>
+          <div class="legend-card"><strong>勝利条件</strong><div><span class="legend-dot goal-dot"></span><p><b>全スタック</b><small>相手のダイス3個すべてを覆う</small></p></div><div><span class="legend-dot stack-dot"></span><p><b>スタック</b><small>相手の最上段より大きい数字で乗る</small></p></div></div>
+          <div class="sidebar-actions"><button id="rematchButton" class="primary-button hidden">再戦を申し込む <span>↻</span></button><button id="rulesOpenGame" class="secondary-button">ルールを確認 <span>↗</span></button></div>
+        </aside>
+        <section class="board-panel">
+          <div class="board-topline"><div><span class="board-label">THE BATTLEFIELD</span><strong>5 × 7 <small>GRID</small></strong></div><div class="board-coordinates">A — B — C — D — E</div></div>
+          <div class="board-wrap">
+            <div class="row-labels" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+            <div id="gameBoard" class="game-board" role="grid" aria-label="DICE STACK 5列7行の盤面"></div>
+          </div>
+          <div class="board-bottomline"><span><i class="legend-dot goal-dot"></i> 全スタック目標</span><span id="boardMessage">白が先手です</span><span><i class="legend-dot stack-dot"></i> スタック可能</span></div>
+          <div id="resultBanner" class="result-banner hidden" role="status"><span id="resultIcon">✦</span><div><strong id="resultTitle">WHITE WINS</strong><p id="resultDescription">勝利しました。</p></div></div>
+        </section>
+      </div>
+      <footer class="page-footer"><span>© DICE STACK</span><span id="matchIdLabel">MATCH —</span></footer>
+    </section>
+  </main>
+
+  <dialog id="rulesDialog" class="rules-dialog">
+    <div class="dialog-head"><div><span class="section-kicker">HOW TO PLAY</span><h2>ルール</h2></div><button id="rulesClose" class="icon-button" aria-label="閉じる">×</button></div>
+    <div class="rules-content">
+      <h3>目的</h3><p>相手のダイス3個すべての上に自分のダイスを置いた状態にすると勝利です。1個だけスタックしても勝利にはなりません。</p>
+      <h3>移動</h3><p>自分のターンに、スタックの最上段にある自分のダイスを選択し、上下左右または斜めに1マス移動します。移動成功時、数字は <b>1 → 2 → 3 → 1</b> と変化します。</p>
+      <h3>スタック</h3><p>相手のダイスがあるマスには、数字を更新した後の自分の数字が、相手の最上段の数字より大きい場合のみ移動できます。スタックした瞬間に勝利です。自分のダイスの上には積めません。</p>
+      <h3>オンライン対戦</h3><p>ホストが白、ゲストが黒です。ホストがゲーム状態を検証・管理し、ゲストは移動要求を送ります。Peer IDを相手と共有してください。</p>
+      <h3>GitHub Pagesで公開</h3><p>index.html、style.css、script.jsをリポジトリのルートに置いてpushし、Settings → Pages → Deploy from a branch → main / (root) を選択します。HTTPSの公開URLを開いて対戦してください。</p>
+      <p class="rules-note">通信接続の確立にはPeerJSの公開シグナリングサーバーを利用します。ネットワーク環境によっては接続できない場合があります。</p>
+    </div>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
