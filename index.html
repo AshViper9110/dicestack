@@ -75,7 +75,7 @@
           </div>
           <div class="player-card opponent-player" id="whitePlayerCard"><div class="player-symbol white-token">W</div><div class="player-info"><strong>WHITE / 白</strong><small id="whiteRole">ホスト</small></div><span class="player-state" id="whiteState">先手</span></div>
           <div class="player-card self-player" id="blackPlayerCard"><div class="player-symbol black-token">B</div><div class="player-info"><strong>BLACK / 黒</strong><small id="blackRole">ゲスト</small></div><span class="player-state" id="blackState">後手</span></div>
-          <div class="legend-card"><strong>勝利条件</strong><div><span class="legend-dot goal-dot"></span><p><b>全スタック</b><small>相手のダイス3個すべてを覆う</small></p></div><div><span class="legend-dot stack-dot"></span><p><b>スタック</b><small>相手の最上段より大きい数字で乗る</small></p></div></div>
+          <div class="legend-card"><strong>勝利条件（どちらか）</strong><div><span class="legend-dot goal-dot"></span><p><b>ゴール到達</b><small>相手の初期列の両端（A1/E1・A7/E7）へ到達</small></p></div><div><span class="legend-dot stack-dot"></span><p><b>全スタック</b><small>相手のダイス3個すべてを覆う</small></p></div></div>
           <div class="sidebar-actions"><button id="rematchButton" class="primary-button hidden">再戦を申し込む <span>↻</span></button><button id="rulesOpenGame" class="secondary-button">ルールを確認 <span>↗</span></button></div>
         </aside>
         <section class="board-panel">
@@ -84,7 +84,7 @@
             <div class="row-labels" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
             <div id="gameBoard" class="game-board" role="grid" aria-label="DICE STACK 5列7行の盤面"></div>
           </div>
-          <div class="board-bottomline"><span><i class="legend-dot goal-dot"></i> 全スタック目標</span><span id="boardMessage">白が先手です</span><span><i class="legend-dot stack-dot"></i> スタック可能</span></div>
+          <div class="board-bottomline"><span><i class="legend-dot goal-dot"></i> ゴールマス</span><span id="boardMessage">白が先手です</span><span><i class="legend-dot stack-dot"></i> スタック可能</span></div>
           <div id="resultBanner" class="result-banner hidden" role="status"><span id="resultIcon">✦</span><div><strong id="resultTitle">WHITE WINS</strong><p id="resultDescription">勝利しました。</p></div></div>
         </section>
       </div>
@@ -95,9 +95,9 @@
   <dialog id="rulesDialog" class="rules-dialog">
     <div class="dialog-head"><div><span class="section-kicker">HOW TO PLAY</span><h2>ルール</h2></div><button id="rulesClose" class="icon-button" aria-label="閉じる">×</button></div>
     <div class="rules-content">
-      <h3>目的</h3><p>相手のダイス3個すべての上に自分のダイスを置いた状態にすると勝利です。1個だけスタックしても勝利にはなりません。</p>
+      <h3>目的・勝利条件</h3><p>次のどちらかを満たすと勝利です。<b>①ゴール到達：</b>自分のダイスが相手の初期配置列の両端のゴールマス（白はA1/E1、黒はA7/E7）に到達する。<b>②全スタック：</b>相手のダイス3個すべての上に自分のダイスを置く。
       <h3>移動</h3><p>自分のターンに、スタックの最上段にある自分のダイスを選択し、上下左右または斜めに1マス移動します。移動成功時、数字は <b>1 → 2 → 3 → 1</b> と変化します。</p>
-      <h3>スタック</h3><p>相手のダイスがあるマスには、数字を更新した後の自分の数字が、相手の最上段の数字より大きい場合のみ移動できます。スタックした瞬間に勝利です。自分のダイスの上には積めません。</p>
+      <h3>スタック</h3><p>相手のダイスがあるマスには、数字を更新した後の自分の数字が、相手の最上段の数字より大きい場合のみ移動できます。相手のダイス1個をスタックしただけでは勝利にならず、3個すべてを覆うと勝利です。自分のダイスの上には積めません。</p>
       <h3>オンライン対戦</h3><p>ホストが白、ゲストが黒です。ホストがゲーム状態を検証・管理し、ゲストは移動要求を送ります。Peer IDを相手と共有してください。</p>
       <h3>GitHub Pagesで公開</h3><p>index.html、style.css、script.jsをリポジトリのルートに置いてpushし、Settings → Pages → Deploy from a branch → main / (root) を選択します。HTTPSの公開URLを開いて対戦してください。</p>
       <p class="rules-note">通信接続の確立にはPeerJSの公開シグナリングサーバーを利用します。ネットワーク環境によっては接続できない場合があります。</p>

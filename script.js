@@ -46,6 +46,12 @@
       return state.dice.filter(d => d.x === x && d.y === y)
         .sort((a, b) => (a.stackOrder || 0) - (b.stackOrder || 0));
     },
+    reachedGoal(state, color) {
+      // Goal squares are the two outer corners on the opponent's starting row:
+      // A1/E1 for White, A7/E7 for Black.
+      const enemyHomeY = color === "WHITE" ? 0 : ROWS - 1;
+      return state.dice.some(d => d.color === color && d.y === enemyHomeY && (d.x === 0 || d.x === COLS - 1));
+    },
     allOpponentsStacked(state, color) {
       const enemyColor = color === "WHITE" ? "BLACK" : "WHITE";
       const enemies = state.dice.filter(d => d.color === enemyColor);
@@ -96,7 +102,9 @@
       next.turnNumber += 1;
       next.turn = color === "WHITE" ? "BLACK" : "WHITE";
       next.lastMove = { dieId, color, from, to:{x,y}, value:die.value, stacked:!!check.target };
-      if (this.allOpponentsStacked(next, color)) {
+      if (this.reachedGoal(next, color)) {
+        next.status = "finished"; next.winner = color; next.winReason = "goal";
+      } else if (this.allOpponentsStacked(next, color)) {
         next.status = "finished"; next.winner = color; next.winReason = "all-stacked";
       }
       return {ok:true,state:next};
@@ -408,7 +416,9 @@
       ui.result.classList.remove("hidden");
       const winner=game.winner==="WHITE"?"白（WHITE）":"黒（BLACK）";
       ui.resultTitle.textContent=`${game.winner==="WHITE"?"WHITE":"BLACK"} WINS`;
-      ui.resultDescription.textContent=`${winner}が相手のダイス3個すべてにスタックしました。`;
+      ui.resultDescription.textContent=game.winReason==="goal"
+        ? `${winner}が相手陣地のゴールマスに到達しました。`
+        : `${winner}が相手のダイス3個すべてにスタックしました。`;
       ui.resultIcon.textContent="▰";
     } else ui.result.classList.add("hidden");
   }
@@ -430,7 +440,8 @@
       cell.setAttribute("role","gridcell");
       cell.setAttribute("aria-label",`${"ABCDE"[x]}${y+1}`);
       cell.dataset.x=x; cell.dataset.y=y;
-      if((myColor==="WHITE"&&y===0)||(myColor==="BLACK"&&y===ROWS-1)) cell.classList.add("goal-row");
+      const enemyHomeY = myColor === "BLACK" ? ROWS - 1 : 0;
+      if(y===enemyHomeY&&(x===0||x===COLS-1)) cell.classList.add("goal-cell");
       const coord=document.createElement("span"); coord.className="coord"; coord.textContent=`${"ABCDE"[x]}${y+1}`; cell.append(coord);
       const stack=Rules.stackAt(game,x,y);
       const legal=legalTargets.some(p=>p.x===x&&p.y===y);
@@ -572,9 +583,19 @@
       const s=isolated("WHITE",2,3,3); const target=s.dice.find(d=>d.id==="B1"); target.x=3;target.y=3;target.value=1;
       return assert(!move(s,"B7",3,3,"WHITE").ok);
     });
-    test("最終行到達だけでは勝利しない",()=>{
+    test("相手陣のゴールマスA1到達で白が勝利",()=>{
+      const s=isolated("WHITE",1,1,1); const r=move(s,"B7",0,0,"WHITE");
+      return assert(r.ok&&r.state.status==="finished"&&r.state.winner==="WHITE"&&r.state.winReason==="goal");
+    });
+    test("相手陣のゴール以外のマスでは勝利しない",()=>{
       const s=isolated("WHITE",2,1,1); const r=move(s,"B7",2,0,"WHITE");
       return assert(r.ok&&r.state.status==="playing"&&r.state.winner===null);
+    });
+    test("黒はA7/E7がゴール",()=>{
+      const s=isolated("BLACK",1,5,1); s.turn="BLACK";
+      s.dice.filter(d=>d.id!=="B1").forEach(d=>{d.x=2;d.y=3;});
+      const r=move(s,"B1",0,6,"BLACK");
+      return assert(r.ok&&r.state.status==="finished"&&r.state.winner==="BLACK"&&r.state.winReason==="goal");
     });
     test("相手のダイス3個すべてを覆うと勝利",()=>{
       const s=fresh();
@@ -589,7 +610,7 @@
       return assert(Rules.allOpponentsStacked(s,"WHITE"));
     });
     test("勝利後の操作拒否",()=>{
-      const s=fresh(); s.status="finished";s.winner="WHITE";s.winReason="breakthrough";
+      const s=fresh(); s.status="finished";s.winner="WHITE";s.winReason="goal";
       return assert(!Rules.move(s,"B7",1,5,"WHITE").ok);
     });
     test("手番違反の拒否",()=>assert(!Rules.move(fresh(),"B1",1,1,"BLACK").ok));
